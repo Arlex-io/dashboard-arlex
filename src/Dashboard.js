@@ -34,13 +34,17 @@ export default function Dashboard() {
   const [tab, setTab] = useState("temperatura");
   const [darkMode, setDarkMode] = useState(false);
 
+  const API_BASE = process.env.NODE_ENV === "development"
+    ? ""
+    : "https://arlex-yohp3.ondigitalocean.app";
+
   useEffect(() => {
-    axios.get("/api/dispositivos").then((res) => setDevices(res.data));
-  }, []);
+    axios.get(`${API_BASE}/api/dispositivos`).then((res) => setDevices(res.data));
+  }, [API_BASE]);
 
   const loadData = async () => {
     if (!selectedMac) return;
-    const res = await axios.get(`/api/dispositivo/${selectedMac}/dados?limit=5000`);
+    const res = await axios.get(`${API_BASE}/api/dispositivo/${selectedMac}/dados?limit=5000`);
     let data = res.data;
     if (startDate || endDate) {
       const start = startDate ? new Date(startDate) : new Date("2000-01-01");
