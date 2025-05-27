@@ -1,4 +1,4 @@
-// Dashboard Arlex - Frontend React com Abas e Configuração
+// Dashboard Arlex - Frontend Moderno com Tailwind, Abas, Cards e Dark Mode
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -32,6 +32,7 @@ export default function Dashboard() {
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [tab, setTab] = useState("temperatura");
+  const [darkMode, setDarkMode] = useState(false);
 
   useEffect(() => {
     axios.get("/api/dispositivos").then((res) => setDevices(res.data));
@@ -57,81 +58,115 @@ export default function Dashboard() {
           label,
           data: readings.map((r) => r[field]),
           borderColor: color,
-          fill: false,
+          backgroundColor: color + "33",
+          fill: true,
+          tension: 0.3,
         },
       ],
     };
     const options = {
+      responsive: true,
+      plugins: {
+        legend: {
+          labels: { color: darkMode ? "#fff" : "#000" },
+        },
+      },
       scales: {
         x: {
           type: "time",
-          time: {
-            tooltipFormat: "dd/MM/yyyy HH:mm",
-            unit: "hour",
-          },
+          time: { tooltipFormat: "dd/MM/yyyy HH:mm", unit: "hour" },
+          ticks: { color: darkMode ? "#ccc" : "#333" },
         },
         y: {
           beginAtZero: true,
+          ticks: { color: darkMode ? "#ccc" : "#333" },
         },
       },
     };
-    return <Line data={data} options={options} />;
+    return (
+      <div className="bg-white dark:bg-gray-800 rounded-xl shadow p-4 mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">{label}</h2>
+        <Line data={data} options={options} />
+      </div>
+    );
   };
 
   return (
-    <div className="p-4 max-w-screen-lg mx-auto">
-      <h1 className="text-2xl font-bold mb-4">📊 Dashboard Arlex</h1>
-
-      <div className="mb-4 flex flex-wrap gap-2">
-        <button className={`px-4 py-2 rounded ${tab === "temperatura" ? "bg-blue-600 text-white" : "bg-gray-200"}`} onClick={() => setTab("temperatura")}>Temperatura</button>
-        <button className={`px-4 py-2 rounded ${tab === "umidade" ? "bg-blue-600 text-white" : "bg-gray-200"}`} onClick={() => setTab("umidade")}>Umidade</button>
-        <button className={`px-4 py-2 rounded ${tab === "co2" ? "bg-blue-600 text-white" : "bg-gray-200"}`} onClick={() => setTab("co2")}>CO₂</button>
-        <button className={`px-4 py-2 rounded ${tab === "luminosidade" ? "bg-blue-600 text-white" : "bg-gray-200"}`} onClick={() => setTab("luminosidade")}>Luminosidade</button>
-        <button className={`px-4 py-2 rounded ${tab === "config" ? "bg-blue-600 text-white" : "bg-gray-200"}`} onClick={() => setTab("config")}>Configuração</button>
-      </div>
-
-      {tab === "config" && (
-        <div className="mb-4 grid grid-cols-1 md:grid-cols-3 gap-4">
-          <select
-            className="p-2 border rounded"
-            value={selectedMac}
-            onChange={(e) => setSelectedMac(e.target.value)}
-          >
-            <option value="">Selecione um dispositivo</option>
-            {devices.map((d) => (
-              <option key={d.mac_address} value={d.mac_address}>
-                {d.nome || d.mac_address}
-              </option>
-            ))}
-          </select>
-
-          <input
-            type="datetime-local"
-            className="p-2 border rounded"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-          />
-
-          <input
-            type="datetime-local"
-            className="p-2 border rounded"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-          />
-
+    <div className={`${darkMode ? "dark" : ""} min-h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-100`}>
+      <div className="p-6 max-w-screen-xl mx-auto">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">📊 Dashboard Arlex</h1>
           <button
-            className="col-span-full px-4 py-2 bg-green-600 text-white rounded"
-            onClick={loadData}
+            onClick={() => setDarkMode(!darkMode)}
+            className="px-4 py-2 rounded bg-gray-700 text-white dark:bg-yellow-400 dark:text-black"
           >
-            Carregar Dados
+            {darkMode ? "Modo Claro" : "Modo Escuro"}
           </button>
         </div>
-      )}
 
-      {tab === "temperatura" && makeChart("Temperatura (°C)", "temperatura", "#e11d48")}
-      {tab === "umidade" && makeChart("Umidade (%)", "umidade", "#3b82f6")}
-      {tab === "co2" && makeChart("CO2 (ppm)", "concentracao_co2", "#10b981")}
-      {tab === "luminosidade" && makeChart("Luminosidade", "luminosidade", "#f59e0b")}
+        <div className="mb-6 flex flex-wrap gap-2">
+          {[
+            ["temperatura", "Temperatura"],
+            ["umidade", "Umidade"],
+            ["co2", "CO₂"],
+            ["luminosidade", "Luminosidade"],
+            ["config", "Configuração"],
+          ].map(([key, label]) => (
+            <button
+              key={key}
+              className={`px-4 py-2 rounded-lg font-medium shadow ${
+                tab === key
+                  ? "bg-blue-600 text-white"
+                  : "bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-100"
+              }`}
+              onClick={() => setTab(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        {tab === "config" && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+            <select
+              className="p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-600"
+              value={selectedMac}
+              onChange={(e) => setSelectedMac(e.target.value)}
+            >
+              <option value="">Selecione um dispositivo</option>
+              {devices.map((d) => (
+                <option key={d.mac_address} value={d.mac_address}>
+                  {d.nome || d.mac_address}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="datetime-local"
+              className="p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-600"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+            <input
+              type="datetime-local"
+              className="p-2 border rounded bg-white dark:bg-gray-800 dark:border-gray-600"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+            <button
+              className="col-span-full px-4 py-2 bg-green-600 text-white rounded-lg shadow"
+              onClick={loadData}
+            >
+              Carregar Dados
+            </button>
+          </div>
+        )}
+
+        {tab === "temperatura" && makeChart("Temperatura (°C)", "temperatura", "#e11d48")}
+        {tab === "umidade" && makeChart("Umidade (%)", "umidade", "#3b82f6")}
+        {tab === "co2" && makeChart("CO2 (ppm)", "concentracao_co2", "#10b981")}
+        {tab === "luminosidade" && makeChart("Luminosidade", "luminosidade", "#f59e0b")}
+      </div>
     </div>
   );
 }
