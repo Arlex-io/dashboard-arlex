@@ -1,4 +1,4 @@
-// Dashboard Arlex - Frontend Moderno com Tailwind, Abas, Cards e Dark Mode
+// Dashboard Arlex - Frontend Moderno com Tailwind, Abas, Cards e Dark Mode + Filtros Rápidos de Período
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
@@ -52,6 +52,24 @@ export default function Dashboard() {
       data = data.filter((r) => new Date(r.timestamp_esp) >= start && new Date(r.timestamp_esp) <= end);
     }
     setReadings(data);
+  };
+
+  const setPeriod = (period) => {
+    const now = new Date();
+    let start = new Date();
+
+    if (period === "hoje") {
+      start.setHours(0, 0, 0, 0);
+    } else if (period === "semana") {
+      const day = now.getDay();
+      start.setDate(now.getDate() - day);
+      start.setHours(0, 0, 0, 0);
+    } else if (period === "mes") {
+      start = new Date(now.getFullYear(), now.getMonth(), 1);
+    }
+
+    setStartDate(start.toISOString().slice(0, 16));
+    setEndDate(now.toISOString().slice(0, 16));
   };
 
   const makeChart = (label, field, color) => {
@@ -157,12 +175,13 @@ export default function Dashboard() {
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
             />
-            <button
-              className="col-span-full px-4 py-2 bg-green-600 text-white rounded-lg shadow"
-              onClick={loadData}
-            >
-              Carregar Dados
-            </button>
+
+            <div className="col-span-full flex gap-2">
+              <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => setPeriod("hoje")}>Hoje</button>
+              <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => setPeriod("semana")}>Esta Semana</button>
+              <button className="px-3 py-1 bg-blue-500 text-white rounded" onClick={() => setPeriod("mes")}>Este Mês</button>
+              <button className="px-4 py-1 bg-green-600 text-white rounded ml-auto" onClick={loadData}>Carregar Dados</button>
+            </div>
           </div>
         )}
 
